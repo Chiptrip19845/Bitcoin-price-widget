@@ -111,6 +111,7 @@
         android:orientation="vertical">
 
         <LinearLayout
+            android:id="@+id/range_eur_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
@@ -124,7 +125,7 @@
                 android:gravity="start"
                 android:includeFontPadding="false"
                 android:maxLines="1"
-                android:text="24h  H —  T —"
+                android:text="@string/widget_range_empty"
                 android:textColor="#A6AFBA"
                 android:textSize="9sp"
                 android:textStyle="bold" />
@@ -138,6 +139,7 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/range_usd_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -152,7 +154,7 @@
                 android:gravity="start"
                 android:includeFontPadding="false"
                 android:maxLines="1"
-                android:text="24h  H —  T —"
+                android:text="@string/widget_range_empty"
                 android:textColor="#7F8996"
                 android:textSize="9sp"
                 android:textStyle="bold" />

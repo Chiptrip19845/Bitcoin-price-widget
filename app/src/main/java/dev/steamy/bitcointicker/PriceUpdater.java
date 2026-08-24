@@ -27,6 +27,7 @@ final class PriceUpdater {
     static final String LOW_USD = "low_usd";
     static final String UPDATED_AT = "updated_at";
     static final String LAST_ERROR = "last_error";
+    static final String CURRENCY_PREFERENCE = "currency_preference";
 
     private static final String COINGECKO_MARKETS =
             "https://api.coingecko.com/api/v3/coins/markets"

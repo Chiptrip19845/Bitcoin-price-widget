@@ -1,0 +1,18 @@
+A deliberately tiny, ad-free and tracker-free Android home-screen widget showing the Bitcoin price in EUR and USD.
+
+<b>Features</b>
+
+- EUR and USD price, 24h change, 24h high/low and last update time
+- Manual refresh plus automatic background refresh (about every 15-30 minutes, subject to Android's battery scheduling)
+- Tap the widget to open a focused chart screen: 10 minutes, 1 hour, 24 hours, 4 days and all time, with touch-to-inspect values
+- Choose to display EUR, USD or both - in the app and the widget
+- Bilingual interface (English and German)
+- No account, no ads, no analytics, no tracking, no unnecessary permissions
+
+<b>Data sources</b>
+
+Price data comes from the public CoinGecko market endpoint with a public Coinbase fallback. Historical chart data uses Blockchain.com and Frankfurter. No API key or exchange account is needed.
+
+<b>Open source</b>
+
+The full source code is available under the MIT license. If you like the app, you can support it with an optional donation (link in the app footer) - the app is and stays free, without ads.

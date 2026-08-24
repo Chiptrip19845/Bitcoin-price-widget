@@ -54,7 +54,7 @@ public final class WidgetSetupActivity extends Activity {
 
     private TextView createStatusView() {
         TextView status = new TextView(this);
-        status.setText("₿  Bitcoin Ticker\n\nWidget wird eingerichtet …");
+        status.setText(R.string.widget_setup_progress);
         status.setTextSize(18f);
         status.setTextColor(Color.WHITE);
         status.setBackgroundColor(Color.rgb(18, 21, 27));
@@ -78,9 +78,7 @@ public final class WidgetSetupActivity extends Activity {
         Intent result = new Intent();
         result.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
         setResult(RESULT_OK, result);
-        status.setText(success
-                ? "₿  Bitcoin Ticker\n\nWidget ist bereit."
-                : "₿  Bitcoin Ticker\n\nWidget hinzugefügt. Kurs folgt bei bestehender Verbindung.");
+        status.setText(success ? R.string.widget_setup_ready : R.string.widget_setup_offline);
         mainHandler.postDelayed(this::finish, 650L);
     }
 }

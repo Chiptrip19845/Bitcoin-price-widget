@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.view.View;
 import android.widget.RemoteViews;
 
 import java.text.NumberFormat;
@@ -40,16 +41,21 @@ final class WidgetRenderer {
                 PriceUpdater.PREFS, Context.MODE_PRIVATE);
         boolean hasPrice = prefs.contains(PriceUpdater.EUR)
                 && prefs.contains(PriceUpdater.USD);
+        CurrencyPreference currencyPreference = CurrencyPreference.fromStored(
+                prefs.getString(PriceUpdater.CURRENCY_PREFERENCE, null));
 
         for (int id : ids) {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.bitcoin_widget);
             setClickActions(context, views);
+            applyCurrencyVisibility(views, currencyPreference);
 
             if (hasPrice) {
                 double eur = Double.parseDouble(prefs.getString(PriceUpdater.EUR, "0"));
                 double usd = Double.parseDouble(prefs.getString(PriceUpdater.USD, "0"));
                 double changeEur = Double.parseDouble(
                         prefs.getString(PriceUpdater.CHANGE_EUR, "0"));
+                double changeUsd = Double.parseDouble(
+                        prefs.getString(PriceUpdater.CHANGE_USD, "0"));
                 double highEur = readDouble(prefs, PriceUpdater.HIGH_EUR);
                 double lowEur = readDouble(prefs, PriceUpdater.LOW_EUR);
                 double highUsd = readDouble(prefs, PriceUpdater.HIGH_USD);
@@ -58,11 +64,12 @@ final class WidgetRenderer {
 
                 views.setTextViewText(R.id.price_eur, formatCurrency(eur, Locale.GERMANY, "€"));
                 views.setTextViewText(R.id.price_usd, formatCurrency(usd, Locale.US, "$"));
-                setChange(views, changeEur);
+                setChange(views, currencyPreference == CurrencyPreference.USD
+                        ? changeUsd : changeEur);
                 views.setTextViewText(R.id.range_eur,
-                        formatRange(highEur, lowEur));
+                        formatRange(context, highEur, lowEur));
                 views.setTextViewText(R.id.range_usd,
-                        formatRange(highUsd, lowUsd));
+                        formatRange(context, highUsd, lowUsd));
                 views.setImageViewBitmap(R.id.range_eur_meter,
                         createRangeMeter(context, rangePosition(eur, highEur, lowEur), false));
                 views.setImageViewBitmap(R.id.range_usd_meter,
@@ -77,8 +84,10 @@ final class WidgetRenderer {
                 views.setTextViewText(R.id.change_24h, "");
                 views.setTextViewText(R.id.trend_marker, "•");
                 views.setTextColor(R.id.trend_marker, NEUTRAL);
-                views.setTextViewText(R.id.range_eur, "24h  H —  T —");
-                views.setTextViewText(R.id.range_usd, "24h  H —  T —");
+                views.setTextViewText(R.id.range_eur,
+                        context.getString(R.string.widget_range_empty));
+                views.setTextViewText(R.id.range_usd,
+                        context.getString(R.string.widget_range_empty));
                 views.setImageViewBitmap(R.id.range_eur_meter,
                         createRangeMeter(context, 0, false));
                 views.setImageViewBitmap(R.id.range_usd_meter,
@@ -86,12 +95,24 @@ final class WidgetRenderer {
                 boolean hasError = prefs.contains(PriceUpdater.LAST_ERROR);
                 String errorDetail = prefs.getString(PriceUpdater.LAST_ERROR, "");
                 views.setTextViewText(R.id.status, hasError
-                        ? "Err:" + errorDetail
+                        ? context.getString(R.string.widget_error_detail, errorDetail)
                         : context.getString(R.string.updating_short));
                 views.setTextColor(R.id.freshness_dot, hasError ? NEGATIVE : NEUTRAL);
             }
             manager.updateAppWidget(id, views);
         }
+    }
+
+    private static void applyCurrencyVisibility(RemoteViews views,
+                                                CurrencyPreference preference) {
+        views.setViewVisibility(R.id.price_eur,
+                preference == CurrencyPreference.USD ? View.GONE : View.VISIBLE);
+        views.setViewVisibility(R.id.range_eur_group,
+                preference == CurrencyPreference.USD ? View.GONE : View.VISIBLE);
+        views.setViewVisibility(R.id.price_usd,
+                preference == CurrencyPreference.EUR ? View.GONE : View.VISIBLE);
+        views.setViewVisibility(R.id.range_usd_group,
+                preference == CurrencyPreference.EUR ? View.GONE : View.VISIBLE);
     }
 
     private static void setClickActions(Context context, RemoteViews views) {
@@ -179,15 +200,16 @@ final class WidgetRenderer {
         return Double.parseDouble(prefs.getString(key, "0"));
     }
 
-    private static String formatRange(double high, double low) {
-        return "24h  H " + formatCompact(high) + "  T " + formatCompact(low);
+    private static String formatRange(Context context, double high, double low) {
+        return context.getString(R.string.widget_range,
+                formatCompact(high), formatCompact(low));
     }
 
     private static String formatCompact(double value) {
         if (value >= 1000.0) {
-            return String.format(Locale.GERMANY, "%.1fk", value / 1000.0);
+            return String.format(Locale.getDefault(), "%.1fk", value / 1000.0);
         }
-        return String.format(Locale.GERMANY, "%.0f", value);
+        return String.format(Locale.getDefault(), "%.0f", value);
     }
 
     private static String formatTime(long timestamp) {

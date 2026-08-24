@@ -57,7 +57,7 @@ final class BitcoinChartView extends View {
         labelPaint.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
         dotPaint.setStyle(Paint.Style.FILL);
         selectionBoxPaint.setColor(Color.rgb(39, 44, 52));
-        setContentDescription("Bitcoin-Kursverlauf");
+        setContentDescription(context.getString(R.string.chart_content_description));
     }
 
     void setSeries(ChartSeries series, ChartRange range) {
@@ -88,7 +88,7 @@ final class BitcoinChartView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if (series == null || series.points.size() < 2) {
-            if (error) drawCentered(canvas, "Keine Kursdaten");
+            if (error) drawCentered(canvas, getContext().getString(R.string.chart_no_data));
             return;
         }
 
@@ -200,7 +200,7 @@ final class BitcoinChartView extends View {
                 || range == ChartRange.DAY) pattern = "HH:mm";
         else if (range == ChartRange.FOUR_DAYS) pattern = "EEE";
         else pattern = "yyyy";
-        SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.GERMANY);
+        SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.getDefault());
         String first = format.format(new Date(start));
         String middle = format.format(new Date(start + (end - start) / 2));
         String last = format.format(new Date(end));
@@ -230,9 +230,11 @@ final class BitcoinChartView extends View {
         NumberFormat value = NumberFormat.getCurrencyInstance(currency.locale);
         value.setMaximumFractionDigits(0);
         String priceLabel = value.format(point.price);
-        String datePattern = range == ChartRange.ALL ? "dd. MMM yyyy"
+        boolean german = Locale.GERMAN.getLanguage().equals(Locale.getDefault().getLanguage());
+        String datePattern = range == ChartRange.ALL
+                ? (german ? "dd. MMM yyyy" : "MMM dd, yyyy")
                 : range == ChartRange.FOUR_DAYS ? "EEE, HH:mm" : "HH:mm";
-        String dateLabel = new SimpleDateFormat(datePattern, Locale.GERMANY)
+        String dateLabel = new SimpleDateFormat(datePattern, Locale.getDefault())
                 .format(new Date(point.timestampMillis));
         labelPaint.setColor(Color.WHITE);
         labelPaint.setTextSize(dp(12));

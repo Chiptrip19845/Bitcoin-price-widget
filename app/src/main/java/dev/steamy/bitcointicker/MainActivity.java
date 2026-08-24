@@ -45,6 +45,7 @@ public final class MainActivity extends Activity {
     private int requestGeneration;
     private ChartRange selectedRange = ChartRange.DAY;
     private ChartCurrency selectedCurrency = ChartCurrency.EUR;
+    private CurrencyPreference currencyPreference = CurrencyPreference.BOTH;
 
     private TextView priceText;
     private TextView marketPairText;
@@ -54,6 +55,8 @@ public final class MainActivity extends Activity {
     private TextView lowText;
     private TextView highText;
     private TextView footerText;
+    private TextView currencyPreferenceText;
+    private View currencySelector;
     private BitcoinChartView chartView;
     private ProgressBar progress;
 
@@ -62,6 +65,12 @@ public final class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         for (ChartCurrency currency : ChartCurrency.values()) {
             cache.put(currency, new EnumMap<>(ChartRange.class));
+        }
+        SharedPreferences prefs = getSharedPreferences(PriceUpdater.PREFS, Context.MODE_PRIVATE);
+        currencyPreference = CurrencyPreference.fromStored(
+                prefs.getString(PriceUpdater.CURRENCY_PREFERENCE, null));
+        if (currencyPreference == CurrencyPreference.USD) {
+            selectedCurrency = ChartCurrency.USD;
         }
         getWindow().setStatusBarColor(BACKGROUND);
         getWindow().setNavigationBarColor(BACKGROUND);
@@ -107,14 +116,14 @@ public final class MainActivity extends Activity {
         page.addView(buildChartCard(), chartCardParams());
         page.addView(buildRangeSelector());
 
-        footerText = text("Öffentliche Marktdaten  ·  keine Anmeldung", 11,
+        footerText = text(getString(R.string.public_market_data), 11,
                 TEXT_MUTED, Typeface.NORMAL);
         footerText.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams footerParams = wrapMatch();
         footerParams.topMargin = dp(12);
         page.addView(footerText, footerParams);
 
-        TextView donate = text("☕  App unterstützen  ·  paypal.me/SimonKirschner",
+        TextView donate = text(getString(R.string.donation),
                 11, TEXT_MUTED, Typeface.NORMAL);
         donate.setGravity(Gravity.CENTER);
         donate.setPadding(dp(8), dp(6), dp(8), dp(2));
@@ -128,6 +137,14 @@ public final class MainActivity extends Activity {
             }
         });
         page.addView(donate, wrapMatch());
+
+        currencyPreferenceText = text(currencyPreferenceLabel(), 11,
+                TEXT_MUTED, Typeface.NORMAL);
+        currencyPreferenceText.setGravity(Gravity.CENTER);
+        currencyPreferenceText.setPadding(dp(8), dp(6), dp(8), dp(2));
+        currencyPreferenceText.setOnClickListener(v ->
+                applyCurrencyPreference(currencyPreference.next()));
+        page.addView(currencyPreferenceText, wrapMatch());
 
         updateRangeButtons();
         return page;
@@ -147,7 +164,8 @@ public final class MainActivity extends Activity {
         LinearLayout names = new LinearLayout(this);
         names.setOrientation(LinearLayout.VERTICAL);
         TextView title = text("Bitcoin", 20, TEXT_PRIMARY, Typeface.BOLD);
-        TextView subtitle = text("MARKET OVERVIEW", 10, TEXT_MUTED, Typeface.BOLD);
+        TextView subtitle = text(getString(R.string.market_overview), 10,
+                TEXT_MUTED, Typeface.BOLD);
         subtitle.setLetterSpacing(0.14f);
         LinearLayout.LayoutParams subParams = wrapWrap();
         subParams.topMargin = dp(4);
@@ -158,7 +176,7 @@ public final class MainActivity extends Activity {
         nameParams.leftMargin = dp(12);
         row.addView(names, nameParams);
 
-        TextView market = text("●  MARKET", 10, BITCOIN, Typeface.BOLD);
+        TextView market = text(getString(R.string.market_badge), 10, BITCOIN, Typeface.BOLD);
         market.setLetterSpacing(0.08f);
         market.setGravity(Gravity.CENTER);
         market.setPadding(dp(11), 0, dp(11), 0);
@@ -181,24 +199,35 @@ public final class MainActivity extends Activity {
 
         LinearLayout labelRow = new LinearLayout(this);
         labelRow.setOrientation(LinearLayout.HORIZONTAL);
-        marketPairText = text("BTC / EUR", 11, Color.rgb(206, 159, 102), Typeface.BOLD);
+        marketPairText = text(getString(R.string.market_pair, selectedCurrency.code), 11,
+                Color.rgb(206, 159, 102), Typeface.BOLD);
         marketPairText.setLetterSpacing(0.12f);
         labelRow.addView(marketPairText, new LinearLayout.LayoutParams(0,
                 LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        labelRow.addView(buildCurrencySelector());
+        currencySelector = buildCurrencySelector();
+        currencySelector.setVisibility(currencyPreference == CurrencyPreference.BOTH
+                ? View.VISIBLE : View.GONE);
+        labelRow.addView(currencySelector);
         card.addView(labelRow);
 
-        priceText = text("€ —", 43, TEXT_PRIMARY, Typeface.BOLD);
+        priceText = text(getString(selectedCurrency == ChartCurrency.EUR
+                ? R.string.empty_eur : R.string.empty_usd), 43, TEXT_PRIMARY, Typeface.BOLD);
         LinearLayout.LayoutParams priceParams = wrapWrap();
         priceParams.topMargin = dp(9);
         card.addView(priceText, priceParams);
 
-        changeText = text("24 Std.  —", 13, TEXT_MUTED, Typeface.BOLD);
+        changeText = text(getString(R.string.range_day) + "  —", 13,
+                TEXT_MUTED, Typeface.BOLD);
         LinearLayout.LayoutParams changeParams = wrapWrap();
         changeParams.topMargin = dp(5);
         card.addView(changeText, changeParams);
 
-        alternatePriceText = text("USD  —", 11, TEXT_MUTED, Typeface.BOLD);
+        ChartCurrency alternate = selectedCurrency == ChartCurrency.EUR
+                ? ChartCurrency.USD : ChartCurrency.EUR;
+        alternatePriceText = text(getString(R.string.empty_alternate_price, alternate.code),
+                11, TEXT_MUTED, Typeface.BOLD);
+        alternatePriceText.setVisibility(currencyPreference == CurrencyPreference.BOTH
+                ? View.VISIBLE : View.GONE);
         LinearLayout.LayoutParams alternateParams = wrapWrap();
         alternateParams.topMargin = dp(7);
         card.addView(alternatePriceText, alternateParams);
@@ -232,11 +261,11 @@ public final class MainActivity extends Activity {
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setPadding(dp(5), 0, dp(5), 0);
-        TextView label = text("KURSVERLAUF", 10, TEXT_MUTED, Typeface.BOLD);
+        TextView label = text(getString(R.string.chart_history), 10, TEXT_MUTED, Typeface.BOLD);
         label.setLetterSpacing(0.13f);
         header.addView(label, new LinearLayout.LayoutParams(0,
                 LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        chartRangeText = text(selectedRange.label.toUpperCase(Locale.GERMANY), 10,
+        chartRangeText = text(selectedRange.label(this).toUpperCase(Locale.getDefault()), 10,
                 BITCOIN, Typeface.BOLD);
         chartRangeText.setLetterSpacing(0.08f);
         header.addView(chartRangeText);
@@ -258,8 +287,8 @@ public final class MainActivity extends Activity {
         LinearLayout stats = new LinearLayout(this);
         stats.setOrientation(LinearLayout.HORIZONTAL);
         stats.setPadding(dp(3), dp(5), dp(3), 0);
-        lowText = stat("TIEF", "—", Gravity.START);
-        highText = stat("HOCH", "—", Gravity.END);
+        lowText = stat(getString(R.string.low), "—", Gravity.START);
+        highText = stat(getString(R.string.high), "—", Gravity.END);
         stats.addView(lowText, new LinearLayout.LayoutParams(0,
                 LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         stats.addView(highText, new LinearLayout.LayoutParams(0,
@@ -279,7 +308,7 @@ public final class MainActivity extends Activity {
         ranges.setOrientation(LinearLayout.HORIZONTAL);
         ranges.setGravity(Gravity.CENTER);
         for (ChartRange range : ChartRange.values()) {
-            TextView button = text(range.label, 12, TEXT_MUTED, Typeface.BOLD);
+            TextView button = text(range.label(this), 12, TEXT_MUTED, Typeface.BOLD);
             button.setGravity(Gravity.CENTER);
             button.setMinWidth(dp(58));
             button.setPadding(dp(10), dp(10), dp(10), dp(10));
@@ -311,7 +340,7 @@ public final class MainActivity extends Activity {
     private void selectRange(ChartRange range) {
         if (selectedRange == range) return;
         selectedRange = range;
-        chartRangeText.setText(range.label.toUpperCase(Locale.GERMANY));
+        chartRangeText.setText(range.label(this).toUpperCase(Locale.getDefault()));
         updateRangeButtons();
         ChartSeries cached = cache.get(selectedCurrency).get(range);
         if (cached != null) {
@@ -325,9 +354,11 @@ public final class MainActivity extends Activity {
     }
 
     private void selectCurrency(ChartCurrency currency) {
+        if (currencyPreference != CurrencyPreference.BOTH
+                && !currencyPreference.name().equals(currency.name())) return;
         if (selectedCurrency == currency) return;
         selectedCurrency = currency;
-        marketPairText.setText("BTC / " + currency.code);
+        marketPairText.setText(getString(R.string.market_pair, currency.code));
         updateCurrencyButtons();
         renderStoredPrice();
         ChartSeries cached = cache.get(currency).get(selectedRange);
@@ -340,6 +371,55 @@ public final class MainActivity extends Activity {
         } else {
             loadChart(selectedRange);
         }
+    }
+
+    private void applyCurrencyPreference(CurrencyPreference preference) {
+        currencyPreference = preference;
+        getSharedPreferences(PriceUpdater.PREFS, Context.MODE_PRIVATE)
+                .edit()
+                .putString(PriceUpdater.CURRENCY_PREFERENCE, preference.name())
+                .apply();
+        if (currencyPreferenceText != null) {
+            currencyPreferenceText.setText(currencyPreferenceLabel());
+        }
+        if (currencySelector != null) {
+            currencySelector.setVisibility(preference == CurrencyPreference.BOTH
+                    ? View.VISIBLE : View.GONE);
+        }
+        if (alternatePriceText != null) {
+            alternatePriceText.setVisibility(preference == CurrencyPreference.BOTH
+                    ? View.VISIBLE : View.GONE);
+        }
+
+        ChartCurrency target = preference == CurrencyPreference.USD
+                ? ChartCurrency.USD : preference == CurrencyPreference.EUR
+                ? ChartCurrency.EUR : selectedCurrency;
+        if (target != selectedCurrency) {
+            selectedCurrency = target;
+            marketPairText.setText(getString(R.string.market_pair, target.code));
+            priceText.setText(target == ChartCurrency.EUR
+                    ? R.string.empty_eur : R.string.empty_usd);
+            ChartCurrency alternate = target == ChartCurrency.EUR
+                    ? ChartCurrency.USD : ChartCurrency.EUR;
+            alternatePriceText.setText(getString(
+                    R.string.empty_alternate_price, alternate.code));
+            updateCurrencyButtons();
+            renderStoredPrice();
+            loadChart(selectedRange);
+        } else {
+            renderStoredPrice();
+        }
+        try {
+            WidgetRenderer.renderAll(getApplicationContext(), false);
+        } catch (RuntimeException ignored) {
+            // The preference is saved even if a launcher rejects an immediate redraw.
+        }
+    }
+
+    private String currencyPreferenceLabel() {
+        String value = currencyPreference == CurrencyPreference.BOTH
+                ? getString(R.string.currency_both) : currencyPreference.name();
+        return getString(R.string.currency_preference, value);
     }
 
     private void updateCurrencyButtons() {
@@ -370,9 +450,9 @@ public final class MainActivity extends Activity {
         ChartCurrency currency = selectedCurrency;
         int generation = ++requestGeneration;
         progress.setVisibility(View.VISIBLE);
-        lowText.setText("TIEF\n—");
-        highText.setText("HOCH\n—");
-        footerText.setText("Kursverlauf wird geladen …");
+        lowText.setText(getString(R.string.low) + "\n—");
+        highText.setText(getString(R.string.high) + "\n—");
+        footerText.setText(R.string.chart_loading);
         new Thread(() -> {
             ChartSeries series = null;
             try {
@@ -391,7 +471,7 @@ public final class MainActivity extends Activity {
                     renderFooter();
                 } else {
                     chartView.showError();
-                    footerText.setText("Kursverlauf momentan nicht verfügbar");
+                    footerText.setText(R.string.chart_unavailable);
                 }
             });
         }, "bitcoin-chart-" + range.name().toLowerCase(Locale.US)).start();
@@ -400,9 +480,9 @@ public final class MainActivity extends Activity {
     private void showChartStats(ChartSeries series) {
         NumberFormat format = NumberFormat.getCurrencyInstance(selectedCurrency.locale);
         format.setMaximumFractionDigits(0);
-        lowText.setText("TIEF\n" + format.format(series.minPrice()));
+        lowText.setText(getString(R.string.low) + "\n" + format.format(series.minPrice()));
         lowText.setTextColor(Color.rgb(153, 163, 175));
-        highText.setText("HOCH\n" + format.format(series.maxPrice()));
+        highText.setText(getString(R.string.high) + "\n" + format.format(series.maxPrice()));
         highText.setTextColor(Color.rgb(214, 220, 227));
     }
 
@@ -443,7 +523,7 @@ public final class MainActivity extends Activity {
         }
         if (!Double.isNaN(change)) {
             boolean positive = change >= 0;
-            changeText.setText(String.format(Locale.GERMANY, "%s  %.2f %%  ·  24 STD.",
+            changeText.setText(getString(R.string.change_24_hours,
                     positive ? "▲" : "▼", Math.abs(change)));
             changeText.setTextColor(positive ? GREEN : RED);
             chartView.setDayChangePositive(positive);
@@ -455,8 +535,9 @@ public final class MainActivity extends Activity {
         SharedPreferences prefs = getSharedPreferences(PriceUpdater.PREFS, Context.MODE_PRIVATE);
         long updatedAt = prefs.getLong(PriceUpdater.UPDATED_AT, 0L);
         if (updatedAt > 0 && footerText != null) {
-            String time = new SimpleDateFormat("HH:mm", Locale.GERMANY).format(new Date(updatedAt));
-            footerText.setText("Aktualisiert " + time + "  ·  öffentliche Marktdaten");
+            String time = new SimpleDateFormat("HH:mm", Locale.getDefault())
+                    .format(new Date(updatedAt));
+            footerText.setText(getString(R.string.updated_market_data, time));
         }
     }
 

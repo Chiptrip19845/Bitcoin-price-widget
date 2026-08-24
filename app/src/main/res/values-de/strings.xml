@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_description">Bitcoin-Kurs in EUR und USD ohne Werbung</string>
+    <string name="error_short">Fehler</string>
+    <string name="market_overview">MARKTÜBERSICHT</string>
+    <string name="market_badge">●  MARKT</string>
+    <string name="public_market_data">Öffentliche Marktdaten  ·  keine Anmeldung</string>
+    <string name="updated_market_data">Aktualisiert %1$s  ·  öffentliche Marktdaten</string>
+    <string name="donation">☕  App unterstützen  ·  paypal.me/SimonKirschner</string>
+    <string name="chart_history">KURSVERLAUF</string>
+    <string name="chart_content_description">Bitcoin-Kursverlauf</string>
+    <string name="chart_no_data">Keine Kursdaten</string>
+    <string name="chart_loading">Kursverlauf wird geladen …</string>
+    <string name="chart_unavailable">Kursverlauf momentan nicht verfügbar</string>
+    <string name="low">TIEF</string>
+    <string name="high">HOCH</string>
+    <string name="change_24_hours">%1$s  %2$.2f %%  ·  24 STD.</string>
+    <string name="range_ten_minutes">10 Min</string>
+    <string name="range_hour">1 Std</string>
+    <string name="range_day">24 Std</string>
+    <string name="range_four_days">4 Tage</string>
+    <string name="range_all">Gesamt</string>
+    <string name="currency_preference">⚙  Währungsanzeige: %1$s</string>
+    <string name="currency_both">EUR + USD</string>
+    <string name="widget_setup_progress">₿  Bitcoin Ticker\n\nWidget wird eingerichtet …</string>
+    <string name="widget_setup_ready">₿  Bitcoin Ticker\n\nWidget ist bereit.</string>
+    <string name="widget_setup_offline">₿  Bitcoin Ticker\n\nWidget hinzugefügt. Kurs folgt bei bestehender Verbindung.</string>
+    <string name="widget_range">24h  H %1$s  T %2$s</string>
+    <string name="widget_range_empty">24h  H —  T —</string>
+    <string name="widget_error_detail">Fehler: %1$s</string>
+</resources>

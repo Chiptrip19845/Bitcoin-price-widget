@@ -1,11 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Bitcoin Ticker</string>
-    <string name="widget_description">Bitcoin-Kurs in EUR und USD ohne Werbung</string>
-    <string name="empty_eur">€ —</string>
-    <string name="empty_usd">$ —</string>
-    <string name="refresh_symbol">↻</string>
-    <string name="bitcoin_symbol">₿</string>
-    <string name="updating_short">…</string>
-    <string name="error_short">Fehler</string>
+    <string name="app_name" translatable="false">Bitcoin Ticker</string>
+    <string name="widget_description">Bitcoin price in EUR and USD without ads</string>
+    <string name="empty_eur" translatable="false">€ —</string>
+    <string name="empty_usd" translatable="false">$ —</string>
+    <string name="refresh_symbol" translatable="false">↻</string>
+    <string name="bitcoin_symbol" translatable="false">₿</string>
+    <string name="updating_short" translatable="false">…</string>
+    <string name="market_pair" translatable="false">BTC / %1$s</string>
+    <string name="empty_alternate_price" translatable="false">%1$s  —</string>
+    <string name="error_short">Error</string>
+    <string name="market_overview">MARKET OVERVIEW</string>
+    <string name="market_badge">●  MARKET</string>
+    <string name="public_market_data">Public market data  ·  no sign-in</string>
+    <string name="updated_market_data">Updated %1$s  ·  public market data</string>
+    <string name="donation">☕  Support this app  ·  paypal.me/SimonKirschner</string>
+    <string name="chart_history">PRICE HISTORY</string>
+    <string name="chart_content_description">Bitcoin price history</string>
+    <string name="chart_no_data">No price data</string>
+    <string name="chart_loading">Loading price history …</string>
+    <string name="chart_unavailable">Price history is currently unavailable</string>
+    <string name="low">LOW</string>
+    <string name="high">HIGH</string>
+    <string name="change_24_hours">%1$s  %2$.2f %%  ·  24 HRS</string>
+    <string name="range_ten_minutes">10 min</string>
+    <string name="range_hour">1 hr</string>
+    <string name="range_day">24 hrs</string>
+    <string name="range_four_days">4 days</string>
+    <string name="range_all">All</string>
+    <string name="currency_preference">⚙  Currency display: %1$s</string>
+    <string name="currency_both">EUR + USD</string>
+    <string name="widget_setup_progress">₿  Bitcoin Ticker\n\nSetting up widget …</string>
+    <string name="widget_setup_ready">₿  Bitcoin Ticker\n\nWidget is ready.</string>
+    <string name="widget_setup_offline">₿  Bitcoin Ticker\n\nWidget added. The price will appear when connected.</string>
+    <string name="widget_range">24h  H %1$s  L %2$s</string>
+    <string name="widget_range_empty">24h  H —  L —</string>
+    <string name="widget_error_detail">Err: %1$s</string>
 </resources>
