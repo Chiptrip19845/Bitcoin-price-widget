@@ -11,7 +11,6 @@ import android.graphics.Typeface;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -93,7 +92,7 @@ final class BitcoinChartView extends View {
         }
 
         float left = dp(13);
-        float right = getWidth() - dp(13);
+        float right = getWidth() - dp(24);
         float top = dp(20);
         float bottom = getHeight() - dp(29);
         if (right <= left || bottom <= top) return;
@@ -201,12 +200,21 @@ final class BitcoinChartView extends View {
         else if (range == ChartRange.FOUR_DAYS) pattern = "EEE";
         else pattern = "yyyy";
         SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.getDefault());
-        String first = format.format(new Date(start));
-        String middle = format.format(new Date(start + (end - start) / 2));
-        String last = format.format(new Date(end));
         float y = bottom + dp(21);
-        canvas.drawText(first, left, y, labelPaint);
-        canvas.drawText(middle, (left + right - labelPaint.measureText(middle)) / 2, y, labelPaint);
+        canvas.drawText(format.format(new Date(start)), left, y, labelPaint);
+        if (range == ChartRange.FOUR_DAYS) {
+            // Four day labels for a four-day range: start, +1/3, +2/3, end
+            String second = format.format(new Date(start + (end - start) / 3));
+            String third = format.format(new Date(start + 2 * (end - start) / 3));
+            canvas.drawText(second,
+                    left + (right - left) / 3f - labelPaint.measureText(second) / 2f, y, labelPaint);
+            canvas.drawText(third,
+                    left + 2f * (right - left) / 3f - labelPaint.measureText(third) / 2f, y, labelPaint);
+        } else {
+            String middle = format.format(new Date(start + (end - start) / 2));
+            canvas.drawText(middle, (left + right - labelPaint.measureText(middle)) / 2, y, labelPaint);
+        }
+        String last = format.format(new Date(end));
         canvas.drawText(last, right - labelPaint.measureText(last), y, labelPaint);
     }
 
@@ -227,9 +235,7 @@ final class BitcoinChartView extends View {
         canvas.drawCircle(x, y, dp(5), dotPaint);
         dotPaint.setStyle(Paint.Style.FILL);
 
-        NumberFormat value = NumberFormat.getCurrencyInstance(currency.locale);
-        value.setMaximumFractionDigits(0);
-        String priceLabel = value.format(point.price);
+        String priceLabel = currency.format(point.price);
         boolean german = Locale.GERMAN.getLanguage().equals(Locale.getDefault().getLanguage());
         String datePattern = range == ChartRange.ALL
                 ? (german ? "dd. MMM yyyy" : "MMM dd, yyyy")

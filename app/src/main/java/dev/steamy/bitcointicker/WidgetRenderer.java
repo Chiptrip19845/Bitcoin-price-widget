@@ -13,7 +13,6 @@ import android.graphics.Paint;
 import android.view.View;
 import android.widget.RemoteViews;
 
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -62,8 +61,8 @@ final class WidgetRenderer {
                 double lowUsd = readDouble(prefs, PriceUpdater.LOW_USD);
                 long updatedAt = prefs.getLong(PriceUpdater.UPDATED_AT, 0L);
 
-                views.setTextViewText(R.id.price_eur, formatCurrency(eur, Locale.GERMANY, "€"));
-                views.setTextViewText(R.id.price_usd, formatCurrency(usd, Locale.US, "$"));
+                views.setTextViewText(R.id.price_eur, ChartCurrency.EUR.format(eur));
+                views.setTextViewText(R.id.price_usd, ChartCurrency.USD.format(usd));
                 setChange(views, currencyPreference == CurrencyPreference.USD
                         ? changeUsd : changeEur);
                 views.setTextViewText(R.id.range_eur,
@@ -187,13 +186,6 @@ final class WidgetRenderer {
         int color = age <= FRESH_AGE_MS ? POSITIVE : age <= AGING_AGE_MS ? AGING : NEGATIVE;
         views.setTextViewText(R.id.freshness_dot, "•");
         views.setTextColor(R.id.freshness_dot, color);
-    }
-
-    private static String formatCurrency(double value, Locale locale, String symbol) {
-        NumberFormat format = NumberFormat.getNumberInstance(locale);
-        format.setMaximumFractionDigits(0);
-        format.setMinimumFractionDigits(0);
-        return symbol + format.format(value);
     }
 
     private static double readDouble(SharedPreferences prefs, String key) {

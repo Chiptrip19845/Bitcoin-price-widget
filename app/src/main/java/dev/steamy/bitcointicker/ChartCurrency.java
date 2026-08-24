@@ -3,14 +3,27 @@ package dev.steamy.bitcointicker;
 import java.util.Locale;
 
 enum ChartCurrency {
-    EUR("EUR", Locale.GERMANY),
-    USD("USD", Locale.US);
+    EUR("EUR", "€"),
+    USD("USD", "$");
 
     final String code;
-    final Locale locale;
+    final String symbol;
 
-    ChartCurrency(String code, Locale locale) {
+    ChartCurrency(String code, String symbol) {
         this.code = code;
-        this.locale = locale;
+        this.symbol = symbol;
+    }
+
+    /** Device-locale-aware number formatting with the correct currency symbol. */
+    String format(double value) {
+        java.text.NumberFormat format = java.text.NumberFormat.getNumberInstance(Locale.getDefault());
+        format.setMaximumFractionDigits(0);
+        format.setMinimumFractionDigits(0);
+        boolean german = Locale.GERMAN.getLanguage().equals(Locale.getDefault().getLanguage());
+        if (this == USD) {
+            return symbol + format.format(value);
+        }
+        // EUR: suffix in German contexts, prefix elsewhere
+        return german ? format.format(value) + " " + symbol : symbol + format.format(value);
     }
 }

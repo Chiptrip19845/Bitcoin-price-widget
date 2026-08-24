@@ -18,7 +18,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.EnumMap;
@@ -32,6 +31,7 @@ public final class MainActivity extends Activity {
     private static final int BORDER = Color.rgb(40, 48, 59);
     private static final int TEXT_PRIMARY = Color.rgb(247, 248, 250);
     private static final int TEXT_MUTED = Color.rgb(135, 145, 158);
+    private static final int FOOTER_TEXT = Color.rgb(172, 182, 195);
     private static final int BITCOIN = Color.rgb(247, 147, 26);
     private static final int GREEN = Color.rgb(64, 201, 137);
     private static final int RED = Color.rgb(244, 99, 109);
@@ -117,14 +117,14 @@ public final class MainActivity extends Activity {
         page.addView(buildRangeSelector());
 
         footerText = text(getString(R.string.public_market_data), 11,
-                TEXT_MUTED, Typeface.NORMAL);
+                FOOTER_TEXT, Typeface.NORMAL);
         footerText.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams footerParams = wrapMatch();
         footerParams.topMargin = dp(12);
         page.addView(footerText, footerParams);
 
         TextView donate = text(getString(R.string.donation),
-                11, TEXT_MUTED, Typeface.NORMAL);
+                11, FOOTER_TEXT, Typeface.NORMAL);
         donate.setGravity(Gravity.CENTER);
         donate.setPadding(dp(8), dp(6), dp(8), dp(2));
         donate.setOnClickListener(v -> {
@@ -139,7 +139,7 @@ public final class MainActivity extends Activity {
         page.addView(donate, wrapMatch());
 
         currencyPreferenceText = text(currencyPreferenceLabel(), 11,
-                TEXT_MUTED, Typeface.NORMAL);
+                FOOTER_TEXT, Typeface.NORMAL);
         currencyPreferenceText.setGravity(Gravity.CENTER);
         currencyPreferenceText.setPadding(dp(8), dp(6), dp(8), dp(2));
         currencyPreferenceText.setOnClickListener(v ->
@@ -478,11 +478,9 @@ public final class MainActivity extends Activity {
     }
 
     private void showChartStats(ChartSeries series) {
-        NumberFormat format = NumberFormat.getCurrencyInstance(selectedCurrency.locale);
-        format.setMaximumFractionDigits(0);
-        lowText.setText(getString(R.string.low) + "\n" + format.format(series.minPrice()));
+        lowText.setText(getString(R.string.low) + "\n" + selectedCurrency.format(series.minPrice()));
         lowText.setTextColor(Color.rgb(153, 163, 175));
-        highText.setText(getString(R.string.high) + "\n" + format.format(series.maxPrice()));
+        highText.setText(getString(R.string.high) + "\n" + selectedCurrency.format(series.maxPrice()));
         highText.setTextColor(Color.rgb(214, 220, 227));
     }
 
@@ -510,16 +508,12 @@ public final class MainActivity extends Activity {
         double alternatePrice = selectedCurrency == ChartCurrency.EUR ? usd : eur;
         double change = selectedCurrency == ChartCurrency.EUR ? changeEur : changeUsd;
         if (!Double.isNaN(selectedPrice)) {
-            NumberFormat price = NumberFormat.getCurrencyInstance(selectedCurrency.locale);
-            price.setMaximumFractionDigits(0);
-            priceText.setText(price.format(selectedPrice));
+            priceText.setText(selectedCurrency.format(selectedPrice));
         }
         if (!Double.isNaN(alternatePrice)) {
             ChartCurrency alternate = selectedCurrency == ChartCurrency.EUR
                     ? ChartCurrency.USD : ChartCurrency.EUR;
-            NumberFormat price = NumberFormat.getCurrencyInstance(alternate.locale);
-            price.setMaximumFractionDigits(0);
-            alternatePriceText.setText(alternate.code + "  " + price.format(alternatePrice));
+            alternatePriceText.setText(alternate.code + "  " + alternate.format(alternatePrice));
         }
         if (!Double.isNaN(change)) {
             boolean positive = change >= 0;
