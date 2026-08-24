@@ -32,14 +32,14 @@ RepoType: git
 Repo: https://github.com/Chiptrip19845/Bitcoin-price-widget
 
 Builds:
-  - versionName: 2.4.0
-    versionCode: 35
-    commit: v2.4.0
+  - versionName: 2.4.1
+    versionCode: 36
+    commit: v2.4.1
     subdir: app
     gradle:
       - yes
 
 AutoUpdateMode: Version v%v
 UpdateCheckMode: Tags
-CurrentVersion: 2.4.0
-CurrentVersionCode: 35
+CurrentVersion: 2.4.1
+CurrentVersionCode: 36
