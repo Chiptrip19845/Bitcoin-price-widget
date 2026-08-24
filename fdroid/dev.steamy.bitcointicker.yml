@@ -1,0 +1,45 @@
+Categories:
+  - Money
+License: MIT
+AuthorName: Simon Kirschner
+WebSite: https://github.com/Chiptrip19845/bitcoin-ticker-widget
+SourceCode: https://github.com/Chiptrip19845/bitcoin-ticker-widget
+IssueTracker: https://github.com/Chiptrip19845/bitcoin-ticker-widget/issues
+Donate: https://www.paypal.me/SimonKirschner
+
+AutoName: Bitcoin Ticker (+Widget)
+
+Summary: Ad-free Bitcoin home-screen widget with EUR/USD price and charts
+Description: |-
+    A deliberately tiny, ad-free and tracker-free Android home-screen widget
+    showing the Bitcoin price in EUR and USD.
+
+    Features:
+
+    - EUR and USD price, 24h change, 24h high/low and last update time
+    - Manual refresh plus automatic background refresh (about every 15-30 min,
+      subject to Android's battery scheduling)
+    - Tap the widget to open a focused chart screen: 10 minutes, 1 hour,
+      24 hours, 4 days and all time, with touch-to-inspect high/low values
+    - Choose to display EUR, USD or both - in the app and the widget
+    - Bilingual interface (English and German)
+    - No account, no ads, no analytics, no tracking, no unnecessary permissions
+
+    Price data comes from the public CoinGecko market endpoint with a public
+    Coinbase fallback; no API key or exchange account is needed.
+
+RepoType: git
+Repo: https://github.com/Chiptrip19845/bitcoin-ticker-widget
+
+Builds:
+  - versionName: 2.4.0
+    versionCode: 35
+    commit: v2.4.0
+    subdir: app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version v%v
+UpdateCheckMode: Tags
+CurrentVersion: 2.4.0
+CurrentVersionCode: 35

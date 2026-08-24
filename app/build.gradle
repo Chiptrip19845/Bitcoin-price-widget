@@ -1,0 +1,56 @@
+plugins {
+    id 'com.android.application'
+}
+
+def signingPropertiesFile = rootProject.file('signing/signing.properties')
+def releaseSigning = new Properties()
+if (signingPropertiesFile.exists()) {
+    signingPropertiesFile.withInputStream { releaseSigning.load(it) }
+}
+
+android {
+    namespace 'dev.steamy.bitcointicker'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'dev.steamy.bitcointicker'
+        minSdk 26
+        targetSdk 35
+        versionCode 34
+        versionName '2.3.0'
+    }
+
+    signingConfigs {
+        if (!releaseSigning.isEmpty()) {
+            release {
+                storeFile rootProject.file(releaseSigning['storeFile'])
+                storePassword releaseSigning['storePassword']
+                keyAlias releaseSigning['keyAlias']
+                keyPassword releaseSigning['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (!releaseSigning.isEmpty()) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+}
+
+dependencies {
+    implementation 'androidx.work:work-runtime:2.11.2'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20240303'
+}

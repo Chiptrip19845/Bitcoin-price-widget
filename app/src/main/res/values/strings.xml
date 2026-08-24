@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bitcoin Ticker</string>
+    <string name="widget_description">Bitcoin-Kurs in EUR und USD ohne Werbung</string>
+    <string name="empty_eur">€ —</string>
+    <string name="empty_usd">$ —</string>
+    <string name="refresh_symbol">↻</string>
+    <string name="bitcoin_symbol">₿</string>
+    <string name="updating_short">…</string>
+    <string name="error_short">Fehler</string>
+</resources>
