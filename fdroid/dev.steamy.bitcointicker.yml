@@ -2,9 +2,9 @@ Categories:
   - Money
 License: MIT
 AuthorName: Simon Kirschner
-WebSite: https://github.com/Chiptrip19845/bitcoin-ticker-widget
-SourceCode: https://github.com/Chiptrip19845/bitcoin-ticker-widget
-IssueTracker: https://github.com/Chiptrip19845/bitcoin-ticker-widget/issues
+WebSite: https://github.com/Chiptrip19845/Bitcoin-price-widget
+SourceCode: https://github.com/Chiptrip19845/Bitcoin-price-widget
+IssueTracker: https://github.com/Chiptrip19845/Bitcoin-price-widget/issues
 Donate: https://www.paypal.me/SimonKirschner
 
 AutoName: Bitcoin Ticker (+Widget)
@@ -29,7 +29,7 @@ Description: |-
     Coinbase fallback; no API key or exchange account is needed.
 
 RepoType: git
-Repo: https://github.com/Chiptrip19845/bitcoin-ticker-widget
+Repo: https://github.com/Chiptrip19845/Bitcoin-price-widget
 
 Builds:
   - versionName: 2.4.0
