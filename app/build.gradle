@@ -20,25 +20,11 @@ android {
         versionName '2.4.2'
     }
 
-    signingConfigs {
-        if (!releaseSigning.isEmpty()) {
-            release {
-                storeFile rootProject.file(releaseSigning['storeFile'])
-                storePassword releaseSigning['storePassword']
-                keyAlias releaseSigning['keyAlias']
-                keyPassword releaseSigning['keyPassword']
-            }
-        }
-    }
-
     buildTypes {
         release {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            if (!releaseSigning.isEmpty()) {
-                signingConfig signingConfigs.release
-            }
         }
     }
 
@@ -47,6 +33,39 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
+}
+
+tasks.register('signReleaseApk', Exec) {
+    group = 'build'
+    description = 'Builds and signs the release APK with apksigner 34 for F-Droid reproducibility.'
+    dependsOn 'assembleRelease'
+
+    doFirst {
+        if (releaseSigning.isEmpty()) {
+            throw new GradleException('signing/signing.properties is required for signReleaseApk')
+        }
+
+        def apksigner = new File(android.sdkDirectory, 'build-tools/34.0.0/apksigner')
+        if (!apksigner.canExecute()) {
+            throw new GradleException('Android SDK Build Tools 34.0.0 is required for reproducible signing')
+        }
+
+        def unsignedApk = layout.buildDirectory.file(
+                'outputs/apk/release/app-release-unsigned.apk').get().asFile
+        def signedApk = layout.buildDirectory.file(
+                'outputs/apk/release/app-release.apk').get().asFile
+        environment 'APK_KS_PASS', releaseSigning['storePassword']
+        environment 'APK_KEY_PASS', releaseSigning['keyPassword']
+        commandLine apksigner.absolutePath,
+                'sign',
+                '--ks', rootProject.file(releaseSigning['storeFile']).absolutePath,
+                '--ks-key-alias', releaseSigning['keyAlias'],
+                '--ks-pass', 'env:APK_KS_PASS',
+                '--key-pass', 'env:APK_KEY_PASS',
+                '--v4-signing-enabled', 'false',
+                '--out', signedApk.absolutePath,
+                unsignedApk.absolutePath
+    }
 }
 
 dependencies {

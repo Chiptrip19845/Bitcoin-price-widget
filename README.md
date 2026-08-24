@@ -30,8 +30,19 @@ The project requires JDK 17 and Android SDK 35.
 ```
 
 The debug APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
-When local release-signing properties are present, `assembleRelease` creates a
-signed and minified APK in `app/build/outputs/apk/release/`.
+`assembleRelease` creates an unsigned, minified APK in
+`app/build/outputs/apk/release/`, which is also the build path used by F-Droid.
+
+For an upstream-signed release, install Android SDK Build Tools 34.0.0, add the
+local `signing/signing.properties`, and run:
+
+```sh
+./gradlew clean signReleaseApk
+```
+
+This deliberately signs with `apksigner` 34 because Build Tools 35 signatures
+cannot currently be verified by F-Droid's `apksigcopier`. The signed output is
+`app/build/outputs/apk/release/app-release.apk`.
 
 ## Data source and privacy
 
