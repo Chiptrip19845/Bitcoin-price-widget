@@ -1,0 +1,18 @@
+Ein bewusst kleines, werbe- und trackerfreies Android-Homescreen-Widget, das den Bitcoin-Kurs in EUR und USD anzeigt.
+
+<b>Funktionen</b>
+
+- Kurs in EUR und USD, 24h-Änderung, 24h-Hoch/Tief und Zeitpunkt der letzten Aktualisierung
+- Manueller Refresh plus automatische Hintergrund-Aktualisierung (ca. alle 15–30 Minuten, abhängig von Androids Akku-Scheduling)
+- Tipp aufs Widget öffnet eine fokussierte Chart-Ansicht: 10 Minuten, 1 Stunde, 24 Stunden, 4 Tage und Gesamtverlauf, mit Werten-Abfrage per Finger
+- Währung wählbar: EUR, USD oder beides – in der App und im Widget
+- Zweisprachige Oberfläche (Deutsch und Englisch)
+- Kein Konto, keine Werbung, kein Analytics, kein Tracking, keine unnötigen Berechtigungen
+
+<b>Datenquellen</b>
+
+Die Kursdaten kommen vom öffentlichen CoinGecko-Markt-Endpunkt mit öffentlichem Coinbase-Fallback. Historische Chartdaten nutzen Blockchain.com und Frankfurter. Kein API-Schlüssel oder Börsenkonto nötig.
+
+<b>Open Source</b>
+
+Der vollständige Quellcode steht unter der MIT-Lizenz. Wenn dir die App gefällt, kannst du sie mit einer optionalen Spende unterstützen (Link in der App-Fußzeile) – die App ist und bleibt kostenlos, ohne Werbung.
