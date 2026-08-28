@@ -78,8 +78,8 @@ final class WidgetRenderer {
                 views.setTextViewText(R.id.status, formatTime(updatedAt));
                 setFreshness(views, updatedAt);
             } else {
-                views.setTextViewText(R.id.price_eur, "€ —");
-                views.setTextViewText(R.id.price_usd, "$ —");
+                views.setTextViewText(R.id.price_eur, context.getString(R.string.empty_eur));
+                views.setTextViewText(R.id.price_usd, context.getString(R.string.empty_usd));
                 views.setTextViewText(R.id.change_24h, "");
                 views.setTextViewText(R.id.trend_marker, "•");
                 views.setTextColor(R.id.trend_marker, NEUTRAL);

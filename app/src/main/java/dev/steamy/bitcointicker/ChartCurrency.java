@@ -14,16 +14,18 @@ enum ChartCurrency {
         this.symbol = symbol;
     }
 
-    /** Device-locale-aware number formatting with the correct currency symbol. */
+    /** Device-locale-aware number formatting with consistent symbol placement. */
     String format(double value) {
-        java.text.NumberFormat format = java.text.NumberFormat.getNumberInstance(Locale.getDefault());
+        return format(value, Locale.getDefault());
+    }
+
+    String format(double value, Locale locale) {
+        java.text.NumberFormat format = java.text.NumberFormat.getNumberInstance(locale);
         format.setMaximumFractionDigits(0);
         format.setMinimumFractionDigits(0);
-        boolean german = Locale.GERMAN.getLanguage().equals(Locale.getDefault().getLanguage());
-        if (this == USD) {
-            return symbol + format.format(value);
-        }
-        // EUR: suffix in German contexts, prefix elsewhere
-        return german ? format.format(value) + " " + symbol : symbol + format.format(value);
+        boolean symbolAfterNumber = Locale.GERMAN.getLanguage().equals(locale.getLanguage());
+        return symbolAfterNumber
+                ? format.format(value) + " " + symbol
+                : symbol + format.format(value);
     }
 }

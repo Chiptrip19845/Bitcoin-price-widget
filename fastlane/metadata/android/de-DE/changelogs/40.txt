@@ -1,0 +1,1 @@
+EUR- und USD-Symbole werden nun in App und Widget einheitlich entsprechend der Gerätesprache positioniert.

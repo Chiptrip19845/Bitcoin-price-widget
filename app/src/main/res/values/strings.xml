@@ -2,8 +2,8 @@
 <resources>
     <string name="app_name" translatable="false">Bitcoin Ticker</string>
     <string name="widget_description">Bitcoin price in EUR and USD without ads</string>
-    <string name="empty_eur" translatable="false">€ —</string>
-    <string name="empty_usd" translatable="false">$ —</string>
+    <string name="empty_eur">€ —</string>
+    <string name="empty_usd">$ —</string>
     <string name="refresh_symbol" translatable="false">↻</string>
     <string name="bitcoin_symbol" translatable="false">₿</string>
     <string name="updating_short" translatable="false">…</string>
