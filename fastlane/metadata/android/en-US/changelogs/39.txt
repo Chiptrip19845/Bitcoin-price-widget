@@ -1,0 +1,1 @@
+The “14 days” label is now shown in full on narrow displays.

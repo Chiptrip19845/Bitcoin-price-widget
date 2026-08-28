@@ -308,10 +308,10 @@ public final class MainActivity extends Activity {
         ranges.setOrientation(LinearLayout.HORIZONTAL);
         ranges.setGravity(Gravity.CENTER);
         for (ChartRange range : ChartRange.values()) {
-            TextView button = text(range.label(this), 12, TEXT_MUTED, Typeface.BOLD);
+            TextView button = text(range.label(this), 11, TEXT_MUTED, Typeface.BOLD);
             button.setGravity(Gravity.CENTER);
-            button.setMinWidth(dp(58));
-            button.setPadding(dp(10), dp(10), dp(10), dp(10));
+            button.setMinWidth(dp(48));
+            button.setPadding(dp(3), dp(10), dp(3), dp(10));
             button.setOnClickListener(view -> selectRange(range));
             ranges.addView(button, new LinearLayout.LayoutParams(0, dp(38), 1f));
             rangeButtons.put(range, button);

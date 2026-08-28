@@ -1,0 +1,1 @@
+Die Beschriftung „14 Tage“ wird nun auch auf schmalen Displays vollständig angezeigt.
