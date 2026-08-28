@@ -20,7 +20,7 @@ Description: |-
     - Manual refresh plus automatic background refresh (about every 15-30 min,
       subject to Android's battery scheduling)
     - Tap the widget to open a focused chart screen: 10 minutes, 1 hour,
-      24 hours, 4 days and all time, with touch-to-inspect high/low values
+      24 hours, 4 days, 14 days and all time, with touch-to-inspect high/low values
     - Choose to display EUR, USD or both - in the app and the widget
     - Bilingual interface (English and German)
     - No account, no ads, no analytics, no tracking, no unnecessary permissions

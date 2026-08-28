@@ -4,7 +4,7 @@ Ein bewusst kleines, werbe- und trackerfreies Android-Homescreen-Widget, das den
 
 - Kurs in EUR und USD, 24h-Änderung, 24h-Hoch/Tief und Zeitpunkt der letzten Aktualisierung
 - Manueller Refresh plus automatische Hintergrund-Aktualisierung (ca. alle 15–30 Minuten, abhängig von Androids Akku-Scheduling)
-- Tipp aufs Widget öffnet eine fokussierte Chart-Ansicht: 10 Minuten, 1 Stunde, 24 Stunden, 4 Tage und Gesamtverlauf, mit Werten-Abfrage per Finger
+- Tipp aufs Widget öffnet eine fokussierte Chart-Ansicht: 10 Minuten, 1 Stunde, 24 Stunden, 4 Tage, 14 Tage und Gesamtverlauf, mit Werten-Abfrage per Finger
 - Währung wählbar: EUR, USD oder beides – in der App und im Widget
 - Zweisprachige Oberfläche (Deutsch und Englisch)
 - Kein Konto, keine Werbung, kein Analytics, kein Tracking, keine unnötigen Berechtigungen

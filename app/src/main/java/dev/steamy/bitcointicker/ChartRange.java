@@ -7,6 +7,7 @@ enum ChartRange {
     HOUR(R.string.range_hour, 60 * 60L, 300),
     DAY(R.string.range_day, 24 * 60 * 60L, 900),
     FOUR_DAYS(R.string.range_four_days, 4 * 24 * 60 * 60L, 3600),
+    FOURTEEN_DAYS(R.string.range_fourteen_days, 14 * 24 * 60 * 60L, 21600),
     ALL(R.string.range_all, 0L, 0);
 
     private final int labelResource;

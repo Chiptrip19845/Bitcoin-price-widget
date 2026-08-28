@@ -10,7 +10,8 @@ A deliberately tiny Android home-screen widget showing Bitcoin in EUR and USD.
 - tap a widget price to open the chart; the dedicated refresh area triggers a
   manual refresh and a failed attempt never blocks later taps
 - focused market screen and no unnecessary permissions
-- native in-app EUR chart for 10 minutes, 1 hour, 24 hours, 4 days and all time
+- native in-app chart for EUR and USD covering 10 minutes, 1 hour, 24 hours,
+  4 days, 14 days and all time
 - Android 8.0 or newer
 
 ## Install

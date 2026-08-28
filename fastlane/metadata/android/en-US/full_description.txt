@@ -4,7 +4,7 @@ A deliberately tiny, ad-free and tracker-free Android home-screen widget showing
 
 - EUR and USD price, 24h change, 24h high/low and last update time
 - Manual refresh plus automatic background refresh (about every 15-30 minutes, subject to Android's battery scheduling)
-- Tap the widget to open a focused chart screen: 10 minutes, 1 hour, 24 hours, 4 days and all time, with touch-to-inspect values
+- Tap the widget to open a focused chart screen: 10 minutes, 1 hour, 24 hours, 4 days, 14 days and all time, with touch-to-inspect values
 - Choose to display EUR, USD or both - in the app and the widget
 - Bilingual interface (English and German)
 - No account, no ads, no analytics, no tracking, no unnecessary permissions

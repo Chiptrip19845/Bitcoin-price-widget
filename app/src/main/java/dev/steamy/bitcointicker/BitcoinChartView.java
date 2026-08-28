@@ -197,13 +197,14 @@ final class BitcoinChartView extends View {
         String pattern;
         if (range == ChartRange.TEN_MINUTES || range == ChartRange.HOUR
                 || range == ChartRange.DAY) pattern = "HH:mm";
-        else if (range == ChartRange.FOUR_DAYS) pattern = "EEE";
+        else if (range == ChartRange.FOUR_DAYS
+                || range == ChartRange.FOURTEEN_DAYS) pattern = "EEE";
         else pattern = "yyyy";
         SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.getDefault());
         float y = bottom + dp(21);
         canvas.drawText(format.format(new Date(start)), left, y, labelPaint);
-        if (range == ChartRange.FOUR_DAYS) {
-            // Four day labels for a four-day range: start, +1/3, +2/3, end
+        if (range == ChartRange.FOUR_DAYS || range == ChartRange.FOURTEEN_DAYS) {
+            // Four evenly spaced weekday labels for multi-day ranges.
             String second = format.format(new Date(start + (end - start) / 3));
             String third = format.format(new Date(start + 2 * (end - start) / 3));
             canvas.drawText(second,
@@ -239,7 +240,8 @@ final class BitcoinChartView extends View {
         boolean german = Locale.GERMAN.getLanguage().equals(Locale.getDefault().getLanguage());
         String datePattern = range == ChartRange.ALL
                 ? (german ? "dd. MMM yyyy" : "MMM dd, yyyy")
-                : range == ChartRange.FOUR_DAYS ? "EEE, HH:mm" : "HH:mm";
+                : range == ChartRange.FOUR_DAYS || range == ChartRange.FOURTEEN_DAYS
+                        ? "EEE, HH:mm" : "HH:mm";
         String dateLabel = new SimpleDateFormat(datePattern, Locale.getDefault())
                 .format(new Date(point.timestampMillis));
         labelPaint.setColor(Color.WHITE);

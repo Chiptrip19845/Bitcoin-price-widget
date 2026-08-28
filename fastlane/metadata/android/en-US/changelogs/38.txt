@@ -1,0 +1,1 @@
+Added a new 14-day chart range with detailed six-hour price data.

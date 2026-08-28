@@ -19,6 +19,7 @@
     <string name="range_hour">1 Std</string>
     <string name="range_day">24 Std</string>
     <string name="range_four_days">4 Tage</string>
+    <string name="range_fourteen_days">14 Tage</string>
     <string name="range_all">Gesamt</string>
     <string name="currency_preference">⚙  Währungsanzeige: %1$s</string>
     <string name="currency_both">EUR + USD</string>
