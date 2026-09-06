@@ -59,3 +59,15 @@ historical USD/EUR reference rates from Frankfurter. No API key is required.
 
 No identifier, account information or API key is sent. The only requested
 Android permission is internet access.
+
+## Release ordering
+
+Commit all source, version and changelog changes **before** building a release.
+Build from that clean commit and tag that exact source commit. Android Gradle
+Plugin embeds the current Git revision in `META-INF/version-control-info.textproto`;
+building before committing makes the published APK differ from F-Droid's build.
+Do not amend the source commit after building. If release artifacts are committed
+to `dist/`, commit them separately, leaving the release tag on the source commit.
+Before publishing, rebuild from a separate clean checkout of the source commit
+and verify the signed APK against that unsigned APK using `apksigcopier` and
+`apksigner verify`.

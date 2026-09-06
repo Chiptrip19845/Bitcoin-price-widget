@@ -1,0 +1,1 @@
+Fix release reproducibility for F-Droid. No app behavior changes.

@@ -1,0 +1,1 @@
+Reproduzierbarkeit des Releases für F-Droid korrigiert. Keine Funktionsänderungen.
