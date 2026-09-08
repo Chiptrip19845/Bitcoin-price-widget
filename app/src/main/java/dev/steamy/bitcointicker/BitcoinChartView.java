@@ -195,11 +195,13 @@ final class BitcoinChartView extends View {
     private void drawTimeLabels(Canvas canvas, long start, long end,
                                 float left, float right, float bottom) {
         String pattern;
-        if (range == ChartRange.TEN_MINUTES || range == ChartRange.HOUR
-                || range == ChartRange.DAY) pattern = "HH:mm";
+        if (range == ChartRange.HOUR || range == ChartRange.DAY) pattern = "HH:mm";
         else if (range == ChartRange.FOUR_DAYS
                 || range == ChartRange.FOURTEEN_DAYS) pattern = "EEE";
-        else pattern = "yyyy";
+        else if (range == ChartRange.FOUR_WEEKS) {
+            pattern = Locale.GERMAN.getLanguage().equals(Locale.getDefault().getLanguage())
+                    ? "dd. MMM" : "MMM d";
+        } else pattern = "yyyy";
         SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.getDefault());
         float y = bottom + dp(21);
         canvas.drawText(format.format(new Date(start)), left, y, labelPaint);

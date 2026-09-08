@@ -23,11 +23,11 @@
     <string name="low">LOW</string>
     <string name="high">HIGH</string>
     <string name="change_24_hours">%1$s  %2$.2f %%  ·  24 HRS</string>
-    <string name="range_ten_minutes">10 min</string>
     <string name="range_hour">1 hr</string>
     <string name="range_day">24 hrs</string>
     <string name="range_four_days">4 days</string>
     <string name="range_fourteen_days">14 days</string>
+    <string name="range_four_weeks">4 weeks</string>
     <string name="range_all">All</string>
     <string name="currency_preference">⚙  Currency display: %1$s</string>
     <string name="currency_both">EUR + USD</string>

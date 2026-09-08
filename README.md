@@ -10,8 +10,8 @@ A deliberately tiny Android home-screen widget showing Bitcoin in EUR and USD.
 - tap a widget price to open the chart; the dedicated refresh area triggers a
   manual refresh and a failed attempt never blocks later taps
 - focused market screen and no unnecessary permissions
-- native in-app chart for EUR and USD covering 10 minutes, 1 hour, 24 hours,
-  4 days, 14 days and all time
+- native in-app chart for EUR and USD covering 1 hour, 24 hours,
+  4 days, 14 days, 4 weeks and all time
 - Android 8.0 or newer
 
 ## Install
@@ -31,6 +31,7 @@ The project requires JDK 17 and Android SDK 35.
 ```
 
 The debug APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
+
 `assembleRelease` creates an unsigned, minified APK in
 `app/build/outputs/apk/release/`, which is also the build path used by F-Droid.
 

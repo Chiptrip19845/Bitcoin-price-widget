@@ -1,0 +1,1 @@
+Replace the 10-minute chart range with a new 4-week range.
