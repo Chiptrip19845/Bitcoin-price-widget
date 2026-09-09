@@ -16,11 +16,16 @@ android {
         applicationId 'dev.steamy.bitcointicker'
         minSdk 26
         targetSdk 35
-        versionCode 42
-        versionName '2.6.0'
+        versionCode 43
+        versionName '2.7.0'
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix '.preview'
+            versionNameSuffix '-preview-overlay-yaxis-6'
+            resValue 'string', 'app_name', 'Bitcoin Ticker Preview 6'
+        }
         release {
             minifyEnabled true
             shrinkResources true

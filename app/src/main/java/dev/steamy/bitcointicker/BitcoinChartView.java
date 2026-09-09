@@ -27,6 +27,8 @@ final class BitcoinChartView extends View {
     private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint gridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint labelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint axisPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint axisBoxPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint dotPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint selectionBoxPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path linePath = new Path();
@@ -54,6 +56,10 @@ final class BitcoinChartView extends View {
         labelPaint.setColor(MUTED);
         labelPaint.setTextSize(dp(10));
         labelPaint.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+        axisPaint.setColor(Color.rgb(119, 129, 142));
+        axisPaint.setTextSize(dp(8));
+        axisPaint.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+        axisBoxPaint.setColor(Color.argb(205, 17, 22, 29));
         dotPaint.setStyle(Paint.Style.FILL);
         selectionBoxPaint.setColor(Color.rgb(39, 44, 52));
         setContentDescription(context.getString(R.string.chart_content_description));
@@ -78,6 +84,10 @@ final class BitcoinChartView extends View {
         invalidate();
     }
 
+    boolean hasSeries() {
+        return series != null && series.points.size() >= 2;
+    }
+
     void setDayChangePositive(boolean positive) {
         dayChangePositive = positive;
         if (range == ChartRange.DAY) invalidate();
@@ -97,11 +107,6 @@ final class BitcoinChartView extends View {
         float bottom = getHeight() - dp(29);
         if (right <= left || bottom <= top) return;
 
-        for (int row = 1; row <= 3; row++) {
-            float y = top + (bottom - top) * row / 4f;
-            canvas.drawLine(left, y, right, y, gridPaint);
-        }
-
         List<ChartPoint> points = series.points;
         double min = series.minPrice();
         double max = series.maxPrice();
@@ -110,6 +115,12 @@ final class BitcoinChartView extends View {
         max += padding;
         long start = points.get(0).timestampMillis;
         long end = points.get(points.size() - 1).timestampMillis;
+
+        for (int row = 1; row <= 3; row++) {
+            float fraction = row / 4f;
+            float y = top + (bottom - top) * fraction;
+            canvas.drawLine(left, y, right, y, gridPaint);
+        }
 
         linePath.reset();
         fillPath.reset();
@@ -145,6 +156,8 @@ final class BitcoinChartView extends View {
         canvas.drawPath(linePath, glowPaint);
         canvas.drawPath(linePath, linePaint);
 
+        drawAxisLabels(canvas, min, max, top, bottom, right);
+
         ChartPoint latest = points.get(points.size() - 1);
         float latestX = map(latest.timestampMillis, start, end, left, right);
         float latestY = map(latest.price, min, max, bottom, top);
@@ -171,7 +184,7 @@ final class BitcoinChartView extends View {
         if (event.getAction() == MotionEvent.ACTION_DOWN
                 || event.getAction() == MotionEvent.ACTION_MOVE) {
             float fraction = Math.max(0f, Math.min(1f,
-                    (event.getX() - dp(13)) / Math.max(1f, getWidth() - dp(26))));
+                    (event.getX() - dp(13)) / Math.max(1f, getWidth() - dp(37))));
             touchedIndex = Math.round(fraction * (series.points.size() - 1));
             invalidate();
             return true;
@@ -192,20 +205,36 @@ final class BitcoinChartView extends View {
         return true;
     }
 
+    private void drawAxisLabels(Canvas canvas, double min, double max,
+                                float top, float bottom, float right) {
+        for (int row = 1; row <= 3; row++) {
+            float fraction = row / 4f;
+            float y = top + (bottom - top) * fraction;
+            String value = currency.format(max - (max - min) * fraction);
+            float textWidth = axisPaint.measureText(value);
+            float boxRight = right - dp(4);
+            float boxLeft = boxRight - textWidth - dp(10);
+            canvas.drawRoundRect(boxLeft, y - dp(9), boxRight, y + dp(7),
+                    dp(5), dp(5), axisBoxPaint);
+            canvas.drawText(value, boxLeft + dp(5), y + dp(3), axisPaint);
+        }
+    }
+
     private void drawTimeLabels(Canvas canvas, long start, long end,
                                 float left, float right, float bottom) {
+        long span = end - start;
+        long day = 24L * 60 * 60 * 1000;
         String pattern;
-        if (range == ChartRange.HOUR || range == ChartRange.DAY) pattern = "HH:mm";
-        else if (range == ChartRange.FOUR_DAYS
-                || range == ChartRange.FOURTEEN_DAYS) pattern = "EEE";
-        else if (range == ChartRange.FOUR_WEEKS) {
+        if (span <= 2 * day) pattern = "HH:mm";
+        else if (span <= 21 * day) pattern = "EEE";
+        else if (span <= 550 * day) {
             pattern = Locale.GERMAN.getLanguage().equals(Locale.getDefault().getLanguage())
                     ? "dd. MMM" : "MMM d";
         } else pattern = "yyyy";
         SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.getDefault());
         float y = bottom + dp(21);
         canvas.drawText(format.format(new Date(start)), left, y, labelPaint);
-        if (range == ChartRange.FOUR_DAYS || range == ChartRange.FOURTEEN_DAYS) {
+        if (span > 2 * day && span <= 21 * day) {
             // Four evenly spaced weekday labels for multi-day ranges.
             String second = format.format(new Date(start + (end - start) / 3));
             String third = format.format(new Date(start + 2 * (end - start) / 3));
@@ -240,10 +269,11 @@ final class BitcoinChartView extends View {
 
         String priceLabel = currency.format(point.price);
         boolean german = Locale.GERMAN.getLanguage().equals(Locale.getDefault().getLanguage());
-        String datePattern = range == ChartRange.ALL
+        long span = end - start;
+        long day = 24L * 60 * 60 * 1000;
+        String datePattern = span > 21 * day
                 ? (german ? "dd. MMM yyyy" : "MMM dd, yyyy")
-                : range == ChartRange.FOUR_DAYS || range == ChartRange.FOURTEEN_DAYS
-                        ? "EEE, HH:mm" : "HH:mm";
+                : span > 2 * day ? "EEE, HH:mm" : "HH:mm";
         String dateLabel = new SimpleDateFormat(datePattern, Locale.getDefault())
                 .format(new Date(point.timestampMillis));
         labelPaint.setColor(Color.WHITE);

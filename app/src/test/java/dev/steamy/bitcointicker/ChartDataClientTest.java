@@ -6,6 +6,12 @@ import static org.junit.Assert.assertEquals;
 
 public final class ChartDataClientTest {
     @Test
+    public void tenMonthRangeUsesDailyCandles() {
+        assertEquals(300L * 24 * 60 * 60, ChartRange.TEN_MONTHS.durationSeconds);
+        assertEquals(24 * 60 * 60, ChartRange.TEN_MONTHS.granularitySeconds);
+    }
+
+    @Test
     public void fourteenDayRangeUsesSixHourCandles() {
         assertEquals(14L * 24 * 60 * 60, ChartRange.FOURTEEN_DAYS.durationSeconds);
         assertEquals(6 * 60 * 60, ChartRange.FOURTEEN_DAYS.granularitySeconds);

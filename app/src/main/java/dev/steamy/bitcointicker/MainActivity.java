@@ -13,14 +13,15 @@ import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowInsets;
-import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Locale;
 
 /** Focused Bitcoin market screen backing the home-screen widget. */
@@ -37,13 +38,19 @@ public final class MainActivity extends Activity {
     private static final int RED = Color.rgb(244, 99, 109);
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final EnumMap<ChartRange, TextView> rangeButtons = new EnumMap<>(ChartRange.class);
+    private static final ChartRange[] PRESET_RANGES = {ChartRange.HOUR, ChartRange.DAY,
+            ChartRange.FOUR_DAYS, ChartRange.FOURTEEN_DAYS,
+            ChartRange.FOUR_WEEKS, ChartRange.ALL};
+    private final EnumMap<ChartRange, TextView> presetButtons =
+            new EnumMap<>(ChartRange.class);
     private final EnumMap<ChartCurrency, TextView> currencyButtons =
             new EnumMap<>(ChartCurrency.class);
     private final EnumMap<ChartCurrency, EnumMap<ChartRange, ChartSeries>> cache =
             new EnumMap<>(ChartCurrency.class);
-    private int requestGeneration;
-    private ChartRange selectedRange = ChartRange.DAY;
+    private final EnumMap<ChartCurrency, EnumSet<ChartRange>> loading =
+            new EnumMap<>(ChartCurrency.class);
+    private static final int INITIAL_ZOOM_PROGRESS = 200;
+    private int zoomProgress = INITIAL_ZOOM_PROGRESS;
     private ChartCurrency selectedCurrency = ChartCurrency.EUR;
     private CurrencyPreference currencyPreference = CurrencyPreference.BOTH;
 
@@ -59,12 +66,19 @@ public final class MainActivity extends Activity {
     private View currencySelector;
     private BitcoinChartView chartView;
     private ProgressBar progress;
+    private SeekBar zoomSlider;
+    private View sliderControls;
+    private View presetControls;
+    private TextView presetModeButton;
+    private TextView sliderModeButton;
+    private boolean sliderMode = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         for (ChartCurrency currency : ChartCurrency.values()) {
             cache.put(currency, new EnumMap<>(ChartRange.class));
+            loading.put(currency, EnumSet.noneOf(ChartRange.class));
         }
         SharedPreferences prefs = getSharedPreferences(PriceUpdater.PREFS, Context.MODE_PRIVATE);
         currencyPreference = CurrencyPreference.fromStored(
@@ -84,7 +98,7 @@ public final class MainActivity extends Activity {
             // A vendor-specific WorkManager failure must never close the app.
         }
         renderStoredPrice();
-        loadChart(selectedRange);
+        loadChart(ChartRange.DAY, true);
         refreshPriceInBackground();
     }
 
@@ -114,7 +128,7 @@ public final class MainActivity extends Activity {
         page.addView(buildHeader());
         page.addView(buildHeroCard());
         page.addView(buildChartCard(), chartCardParams());
-        page.addView(buildRangeSelector());
+        page.addView(buildZoomSelector());
 
         footerText = text(getString(R.string.public_market_data), 11,
                 FOOTER_TEXT, Typeface.NORMAL);
@@ -146,7 +160,6 @@ public final class MainActivity extends Activity {
                 applyCurrencyPreference(currencyPreference.next()));
         page.addView(currencyPreferenceText, wrapMatch());
 
-        updateRangeButtons();
         return page;
     }
 
@@ -258,19 +271,19 @@ public final class MainActivity extends Activity {
         card.setBackground(ShapeFactory.roundedBorder(SURFACE, BORDER, 22, 1));
 
         LinearLayout header = new LinearLayout(this);
-        header.setOrientation(LinearLayout.HORIZONTAL);
-        header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setOrientation(LinearLayout.VERTICAL);
         header.setPadding(dp(5), 0, dp(5), 0);
         TextView label = text(getString(R.string.chart_history), 10, TEXT_MUTED, Typeface.BOLD);
         label.setLetterSpacing(0.13f);
-        header.addView(label, new LinearLayout.LayoutParams(0,
-                LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        chartRangeText = text(selectedRange.label(this).toUpperCase(Locale.getDefault()), 10,
+        header.addView(label);
+        chartRangeText = text(getString(R.string.range_day).toUpperCase(Locale.getDefault()), 10,
                 BITCOIN, Typeface.BOLD);
         chartRangeText.setLetterSpacing(0.08f);
+        chartRangeText.setGravity(Gravity.END);
+        chartRangeText.setSingleLine(true);
         header.addView(chartRangeText);
         card.addView(header, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, dp(25)));
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(43)));
 
         chartView = new BitcoinChartView(this);
         card.addView(chartView, new LinearLayout.LayoutParams(
@@ -297,30 +310,166 @@ public final class MainActivity extends Activity {
         return card;
     }
 
-    private View buildRangeSelector() {
-        HorizontalScrollView scroll = new HorizontalScrollView(this);
-        scroll.setHorizontalScrollBarEnabled(false);
-        scroll.setFillViewport(true);
-        scroll.setPadding(dp(4), dp(4), dp(4), dp(4));
-        scroll.setBackground(ShapeFactory.roundedBorder(Color.rgb(13, 17, 22),
+    private View buildZoomSelector() {
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(dp(12), dp(4), dp(12), dp(4));
+        panel.setBackground(ShapeFactory.roundedBorder(Color.rgb(13, 17, 22),
                 Color.rgb(30, 37, 46), 17, 1));
+
+        LinearLayout modeSelector = new LinearLayout(this);
+        modeSelector.setOrientation(LinearLayout.HORIZONTAL);
+        modeSelector.setPadding(dp(2), dp(2), dp(2), dp(2));
+        modeSelector.setBackground(ShapeFactory.roundedBorder(Color.rgb(20, 23, 29),
+                Color.rgb(48, 55, 65), 12, 1));
+        presetModeButton = modeButton(getString(R.string.zoom_mode_presets), false);
+        sliderModeButton = modeButton(getString(R.string.zoom_mode_slider), true);
+        presetModeButton.setOnClickListener(view -> setSliderMode(false));
+        sliderModeButton.setOnClickListener(view -> setSliderMode(true));
+        modeSelector.addView(presetModeButton, new LinearLayout.LayoutParams(0, dp(25), 1f));
+        modeSelector.addView(sliderModeButton, new LinearLayout.LayoutParams(0, dp(25), 1f));
+        LinearLayout.LayoutParams modeParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(29));
+        modeParams.leftMargin = dp(75);
+        modeParams.rightMargin = dp(75);
+        modeParams.bottomMargin = dp(2);
+        panel.addView(modeSelector, modeParams);
+
+        presetControls = buildPresetControls();
+        presetControls.setVisibility(View.GONE);
+        panel.addView(presetControls);
+
+        LinearLayout sliderPanel = new LinearLayout(this);
+        sliderPanel.setOrientation(LinearLayout.VERTICAL);
+        zoomSlider = new SeekBar(this);
+        zoomSlider.setMax(ChartZoom.MAX_PROGRESS);
+        zoomSlider.setProgress(zoomProgress);
+        zoomSlider.setProgressTintList(ColorStateList.valueOf(BITCOIN));
+        zoomSlider.setThumbTintList(ColorStateList.valueOf(Color.rgb(255, 177, 66)));
+        zoomSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar seekBar, int progressValue,
+                                                    boolean fromUser) {
+                zoomProgress = progressValue;
+                updatePresetButtons();
+                renderZoomWindow();
+            }
+
+            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+        sliderPanel.addView(zoomSlider, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(34)));
+
+        sliderPanel.addView(new ZoomMarkerView(this), new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(17)));
+
+        LinearLayout labels = new LinearLayout(this);
+        labels.setOrientation(LinearLayout.HORIZONTAL);
+        TextView near = text(getString(R.string.zoom_out), 9, TEXT_MUTED, Typeface.BOLD);
+        TextView far = text(getString(R.string.zoom_in), 9, TEXT_MUTED, Typeface.BOLD);
+        far.setGravity(Gravity.END);
+        labels.addView(near, new LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        labels.addView(far, new LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        sliderPanel.addView(labels);
+        sliderControls = sliderPanel;
+        panel.addView(sliderControls);
+        return panel;
+    }
+
+    private TextView modeButton(String label, boolean selected) {
+        TextView button = text(label, 9,
+                selected ? Color.rgb(20, 16, 12) : TEXT_MUTED, Typeface.BOLD);
+        button.setGravity(Gravity.CENTER);
+        button.setSingleLine(true);
+        button.setBackground(selected
+                ? ShapeFactory.roundedGradient(Color.rgb(255, 177, 66), BITCOIN, 10)
+                : ShapeFactory.rounded(Color.TRANSPARENT, 10));
+        return button;
+    }
+
+    private View buildPresetControls() {
         LinearLayout ranges = new LinearLayout(this);
         ranges.setOrientation(LinearLayout.HORIZONTAL);
         ranges.setGravity(Gravity.CENTER);
-        for (ChartRange range : ChartRange.values()) {
-            TextView button = text(range.label(this), 10, TEXT_MUTED, Typeface.BOLD);
+        for (ChartRange range : PRESET_RANGES) {
+            TextView button = text(range.label(this), 9, TEXT_MUTED, Typeface.BOLD);
             button.setGravity(Gravity.CENTER);
             button.setSingleLine(true);
-            button.setMinWidth(dp(44));
-            button.setPadding(dp(2), dp(10), dp(2), dp(10));
-            button.setOnClickListener(view -> selectRange(range));
+            button.setPadding(dp(1), dp(8), dp(1), dp(8));
+            button.setOnClickListener(view -> selectPreset(range));
             ranges.addView(button, new LinearLayout.LayoutParams(0, dp(38), 1f));
-            rangeButtons.put(range, button);
+            presetButtons.put(range, button);
         }
-        scroll.addView(ranges, new HorizontalScrollView.LayoutParams(
-                HorizontalScrollView.LayoutParams.MATCH_PARENT,
-                HorizontalScrollView.LayoutParams.WRAP_CONTENT));
-        return scroll;
+        updatePresetButtons();
+        return ranges;
+    }
+
+    private void setSliderMode(boolean useSlider) {
+        if (sliderMode == useSlider) return;
+        sliderMode = useSlider;
+        sliderControls.setVisibility(useSlider ? View.VISIBLE : View.GONE);
+        presetControls.setVisibility(useSlider ? View.GONE : View.VISIBLE);
+        if (!useSlider) selectPreset(nearestPreset(zoomProgress));
+        updateModeButtons();
+    }
+
+    private void updateModeButtons() {
+        styleModeButton(presetModeButton, !sliderMode);
+        styleModeButton(sliderModeButton, sliderMode);
+    }
+
+    private void styleModeButton(TextView button, boolean selected) {
+        button.setTextColor(selected ? Color.rgb(20, 16, 12) : TEXT_MUTED);
+        button.setBackground(selected
+                ? ShapeFactory.roundedGradient(Color.rgb(255, 177, 66), BITCOIN, 10)
+                : ShapeFactory.rounded(Color.TRANSPARENT, 10));
+    }
+
+    private void selectPreset(ChartRange range) {
+        int progressValue = presetProgress(range);
+        zoomProgress = progressValue;
+        zoomSlider.setProgress(progressValue);
+        updatePresetButtons();
+        renderZoomWindow();
+    }
+
+    private void updatePresetButtons() {
+        for (ChartRange range : PRESET_RANGES) {
+            TextView button = presetButtons.get(range);
+            if (button == null) continue;
+            boolean selected = presetProgress(range) == zoomProgress;
+            button.setTextColor(selected ? Color.rgb(20, 16, 12) : TEXT_MUTED);
+            button.setBackground(selected
+                    ? ShapeFactory.roundedGradient(Color.rgb(255, 177, 66), BITCOIN, 11)
+                    : ShapeFactory.rounded(Color.TRANSPARENT, 11));
+        }
+    }
+
+    private ChartRange nearestPreset(int progressValue) {
+        ChartRange closest = ChartRange.HOUR;
+        int distance = Integer.MAX_VALUE;
+        for (ChartRange range : PRESET_RANGES) {
+            int candidateDistance = Math.abs(progressValue - presetProgress(range));
+            if (candidateDistance < distance) {
+                closest = range;
+                distance = candidateDistance;
+            }
+        }
+        return closest;
+    }
+
+    private int presetProgress(ChartRange range) {
+        switch (range) {
+            case HOUR: return 0;
+            case DAY: return 200;
+            case FOUR_DAYS: return 400;
+            case FOURTEEN_DAYS: return 600;
+            case FOUR_WEEKS: return 800;
+            case ALL: return ChartZoom.MAX_PROGRESS;
+            default: throw new IllegalArgumentException("Not a visible preset: " + range);
+        }
     }
 
     private TextView stat(String label, String value, int gravity) {
@@ -338,22 +487,6 @@ public final class MainActivity extends Activity {
         return params;
     }
 
-    private void selectRange(ChartRange range) {
-        if (selectedRange == range) return;
-        selectedRange = range;
-        chartRangeText.setText(range.label(this).toUpperCase(Locale.getDefault()));
-        updateRangeButtons();
-        ChartSeries cached = cache.get(selectedCurrency).get(range);
-        if (cached != null) {
-            requestGeneration++;
-            chartView.setSeries(cached, range, selectedCurrency);
-            showChartStats(cached);
-            progress.setVisibility(View.GONE);
-        } else {
-            loadChart(range);
-        }
-    }
-
     private void selectCurrency(ChartCurrency currency) {
         if (currencyPreference != CurrencyPreference.BOTH
                 && !currencyPreference.name().equals(currency.name())) return;
@@ -362,15 +495,14 @@ public final class MainActivity extends Activity {
         marketPairText.setText(getString(R.string.market_pair, currency.code));
         updateCurrencyButtons();
         renderStoredPrice();
-        ChartSeries cached = cache.get(currency).get(selectedRange);
+        ChartRange source = ChartZoom.sourceFor(zoomProgress);
+        ChartSeries cached = cache.get(currency).get(source);
         if (cached != null) {
-            requestGeneration++;
-            chartView.setSeries(cached, selectedRange, selectedCurrency);
-            showChartStats(cached);
+            renderZoomWindow();
             progress.setVisibility(View.GONE);
             renderFooter();
         } else {
-            loadChart(selectedRange);
+            loadChart(source, true);
         }
     }
 
@@ -406,7 +538,7 @@ public final class MainActivity extends Activity {
                     R.string.empty_alternate_price, alternate.code));
             updateCurrencyButtons();
             renderStoredPrice();
-            loadChart(selectedRange);
+            loadChart(ChartZoom.sourceFor(zoomProgress), true);
         } else {
             renderStoredPrice();
         }
@@ -435,25 +567,14 @@ public final class MainActivity extends Activity {
         }
     }
 
-    private void updateRangeButtons() {
-        for (ChartRange range : ChartRange.values()) {
-            TextView button = rangeButtons.get(range);
-            boolean selected = range == selectedRange;
-            button.setTextColor(selected ? Color.rgb(20, 16, 12) : TEXT_MUTED);
-            button.setBackground(selected
-                    ? ShapeFactory.roundedGradient(Color.rgb(255, 177, 66), BITCOIN, 13)
-                    : ShapeFactory.rounded(Color.TRANSPARENT, 13));
-            button.setElevation(selected ? dp(3) : 0f);
-        }
-    }
-
-    private void loadChart(ChartRange range) {
+    private void loadChart(ChartRange range, boolean showBusy) {
         ChartCurrency currency = selectedCurrency;
-        int generation = ++requestGeneration;
-        progress.setVisibility(View.VISIBLE);
-        lowText.setText(getString(R.string.low) + "\n—");
-        highText.setText(getString(R.string.high) + "\n—");
-        footerText.setText(R.string.chart_loading);
+        if (cache.get(currency).containsKey(range) || loading.get(currency).contains(range)) return;
+        loading.get(currency).add(range);
+        if (showBusy) {
+            progress.setVisibility(View.VISIBLE);
+            footerText.setText(R.string.chart_loading);
+        }
         new Thread(() -> {
             ChartSeries series = null;
             try {
@@ -463,19 +584,92 @@ public final class MainActivity extends Activity {
             }
             ChartSeries result = series;
             handler.post(() -> {
-                if (isFinishing() || isDestroyed() || generation != requestGeneration) return;
-                progress.setVisibility(View.GONE);
+                loading.get(currency).remove(range);
+                if (isFinishing() || isDestroyed()) return;
                 if (result != null && !result.points.isEmpty()) {
                     cache.get(currency).put(range, result);
-                    chartView.setSeries(result, range, currency);
-                    showChartStats(result);
-                    renderFooter();
-                } else {
+                    if (currency == selectedCurrency
+                            && range == ChartZoom.sourceFor(zoomProgress)) {
+                        progress.setVisibility(View.GONE);
+                        renderZoomWindow();
+                        renderFooter();
+                    }
+                    prefetchNext(currency, range);
+                } else if (currency == selectedCurrency
+                        && range == ChartZoom.sourceFor(zoomProgress)
+                        && chartView.hasSeries() == false) {
+                    progress.setVisibility(View.GONE);
                     chartView.showError();
                     footerText.setText(R.string.chart_unavailable);
                 }
             });
         }, "bitcoin-chart-" + range.name().toLowerCase(Locale.US)).start();
+    }
+
+    private void renderZoomWindow() {
+        ChartRange source = ChartZoom.sourceFor(zoomProgress);
+        ChartSeries full = cache.get(selectedCurrency).get(source);
+        if (full == null) {
+            loadChart(source, true);
+            updateZoomLabel(null, zoomDurationSeconds());
+            return;
+        }
+        long duration = zoomDurationSeconds();
+        ChartSeries visible = ChartZoom.window(full, duration);
+        chartView.setSeries(visible, source, selectedCurrency);
+        showChartStats(visible);
+        updateZoomLabel(visible, duration);
+    }
+
+    private long zoomDurationSeconds() {
+        ChartSeries all = cache.get(selectedCurrency).get(ChartRange.ALL);
+        long allTime = ChartZoom.ASSUMED_ALL_TIME_SECONDS;
+        if (all != null && all.points.size() >= 2) {
+            allTime = Math.max(28L * 24 * 60 * 60,
+                    (all.points.get(all.points.size() - 1).timestampMillis
+                            - all.points.get(0).timestampMillis) / 1000L);
+        }
+        return ChartZoom.durationSeconds(zoomProgress, allTime);
+    }
+
+    private void updateZoomLabel(ChartSeries visible, long durationSeconds) {
+        String duration = formatZoomDuration(durationSeconds);
+        if (visible == null || visible.points.size() < 2) {
+            chartRangeText.setText(duration.toUpperCase(Locale.getDefault()));
+            return;
+        }
+        long start = visible.points.get(0).timestampMillis;
+        long end = visible.points.get(visible.points.size() - 1).timestampMillis;
+        boolean german = Locale.GERMAN.getLanguage().equals(Locale.getDefault().getLanguage());
+        String pattern = german ? "dd.MM.yy" : "MMM d, yy";
+        SimpleDateFormat date = new SimpleDateFormat(pattern, Locale.getDefault());
+        chartRangeText.setText((duration + "  ·  " + date.format(new Date(start))
+                + " – " + date.format(new Date(end))).toUpperCase(Locale.getDefault()));
+    }
+
+    private String formatZoomDuration(long seconds) {
+        if (zoomProgress == ChartZoom.MAX_PROGRESS) return getString(R.string.zoom_period_all);
+        long hours = Math.max(1, Math.round(seconds / 3600.0));
+        if (hours < 48) return getString(R.string.zoom_period_hours, hours);
+        long days = Math.round(hours / 24.0);
+        if (days < 14) return getString(R.string.zoom_period_days, days);
+        if (days < 70) return getString(R.string.zoom_period_weeks, Math.round(days / 7.0));
+        if (days < 730) return getString(R.string.zoom_period_months, Math.round(days / 30.44));
+        return getString(R.string.zoom_period_years, Math.round(days / 365.25));
+    }
+
+    private void prefetchNext(ChartCurrency currency, ChartRange loadedRange) {
+        if (currency != selectedCurrency) return;
+        ChartRange[] order = {ChartRange.HOUR, ChartRange.FOUR_DAYS,
+                ChartRange.FOURTEEN_DAYS, ChartRange.FOUR_WEEKS,
+                ChartRange.TEN_MONTHS, ChartRange.ALL};
+        for (ChartRange candidate : order) {
+            if (!cache.get(currency).containsKey(candidate)
+                    && !loading.get(currency).contains(candidate)) {
+                loadChart(candidate, false);
+                return;
+            }
+        }
     }
 
     private void showChartStats(ChartSeries series) {
