@@ -1,0 +1,1 @@
+Make manual widget refreshes start promptly using Android's expedited WorkManager path.

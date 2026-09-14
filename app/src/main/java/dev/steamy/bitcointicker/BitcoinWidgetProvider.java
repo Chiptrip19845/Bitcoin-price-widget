@@ -28,6 +28,11 @@ public final class BitcoinWidgetProvider extends AppWidgetProvider {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (ACTION_REFRESH.equals(intent.getAction())) {
+            try {
+                WidgetRenderer.renderAll(context.getApplicationContext(), true);
+            } catch (RuntimeException ignored) {
+                // A launcher render failure must not prevent the refresh.
+            }
             WidgetScheduler.scheduleNow(context);
             return;
         }

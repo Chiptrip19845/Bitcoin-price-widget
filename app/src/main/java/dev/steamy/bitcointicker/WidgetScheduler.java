@@ -13,6 +13,7 @@ import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.OutOfQuotaPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
@@ -66,6 +67,7 @@ final class WidgetScheduler {
                 .setInputData(new Data.Builder()
                         .putBoolean(PriceUpdateWorker.KEY_RETRY_ON_FAILURE, false)
                         .build())
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .build();
 
         WorkManager.getInstance(context.getApplicationContext()).enqueueUniqueWork(
