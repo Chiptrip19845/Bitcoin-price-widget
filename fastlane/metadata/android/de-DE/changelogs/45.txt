@@ -1,0 +1,1 @@
+Manuelle Widget-Aktualisierungen starten jetzt zuverlässig über Androids beschleunigten WorkManager-Pfad.
